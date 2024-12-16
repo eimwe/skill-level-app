@@ -12,31 +12,40 @@ import { useLocalSearchParams } from "expo-router";
 import {
   saveUserSession,
   saveEvaluationResult,
-} from "../services/supabase-config";
-import { evaluateResponse } from "../services/mistral-service";
+} from "@/services/supabase-config";
+import { evaluateResponse } from "@/services/mistral-service";
+import type { EvaluationResult } from "@/types";
 
 export default function AssessmentScreen() {
   const { level } = useLocalSearchParams<{ level: string }>();
   const [userResponse, setUserResponse] = useState("");
-  const [evaluationResult, setEvaluationResult] = useState<string | null>(null);
+  const [evaluationResult, setEvaluationResult] =
+    useState<EvaluationResult | null>(null);
 
   const handleSubmit = async () => {
     try {
-      // Ensure level is a string and not undefined
       const currentLevel = level || "A1";
 
       const result = await evaluateResponse(currentLevel, userResponse);
+      let parsedResult = null;
 
-      // Handle the result
       if (result) {
-        setEvaluationResult(result);
+        parsedResult = JSON.parse(result);
+        setEvaluationResult(parsedResult);
       } else {
-        setEvaluationResult("No evaluation result available.");
+        setEvaluationResult({
+          score: 0,
+          cefr: "No CEFR level available",
+          feedback: {
+            strengths: [],
+            areas_for_improvement: [],
+            suggested_sub_level: "No evaluation result available.",
+          },
+        });
       }
 
       // Save session and results to Supabase
-      const sessionData = await saveUserSession(currentLevel, [userResponse]);
-
+      const sessionData = await saveUserSession(currentLevel, userResponse);
       // Type-safe session ID extraction
       const sessionId =
         sessionData && sessionData.length > 0 ? sessionData[0].id : 0;
@@ -44,11 +53,18 @@ export default function AssessmentScreen() {
       await saveEvaluationResult(sessionId, currentLevel, 85); // Example score
     } catch (error) {
       console.error("Submission error:", error);
-      setEvaluationResult("An error occurred during evaluation.");
+      setEvaluationResult({
+        score: 0,
+        cefr: "No CEFR level available",
+        feedback: {
+          strengths: [],
+          areas_for_improvement: [],
+          suggested_sub_level: "No evaluation result available.",
+        },
+      });
     }
   };
 
-  // Rest of the component remains the same
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.levelText}>English Proficiency Level: {level}</Text>
@@ -61,10 +77,54 @@ export default function AssessmentScreen() {
       />
       <Button title="Submit" onPress={handleSubmit} />
 
+      {/* Render evaluation result if available */}
       {evaluationResult && (
         <View style={styles.resultContainer}>
           <Text style={styles.resultTitle}>Evaluation Result:</Text>
-          <Text>{evaluationResult}</Text>
+
+          {/* Score */}
+          <Text style={styles.resultText}>
+            <Text style={styles.bold}>Score: </Text>
+            {evaluationResult.score}/100
+          </Text>
+
+          {/* CEFR Level */}
+          <Text style={styles.resultText}>
+            <Text style={styles.bold}>CEFR Level: </Text>
+            {evaluationResult.cefr}
+          </Text>
+
+          {/* Strengths */}
+          {evaluationResult.feedback.strengths && (
+            <View style={styles.feedbackSection}>
+              <Text style={styles.bold}>Strengths:</Text>
+              {evaluationResult.feedback.strengths.map((strength, index) => (
+                <Text key={index} style={styles.feedbackText}>
+                  - {strength}
+                </Text>
+              ))}
+            </View>
+          )}
+
+          {/* Areas for Improvement */}
+          {evaluationResult.feedback.areas_for_improvement && (
+            <View style={styles.feedbackSection}>
+              <Text style={styles.bold}>Areas for Improvement:</Text>
+              {evaluationResult.feedback.areas_for_improvement.map(
+                (area, index) => (
+                  <Text key={index} style={styles.feedbackText}>
+                    - {area}
+                  </Text>
+                )
+              )}
+            </View>
+          )}
+
+          {/* Suggested Sublevel */}
+          <Text style={styles.resultText}>
+            <Text style={styles.bold}>Suggested Sublevel: </Text>
+            {evaluationResult.feedback.suggested_sub_level}
+          </Text>
         </View>
       )}
     </ScrollView>
@@ -102,5 +162,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 8,
+  },
+  resultText: {
+    fontSize: 14,
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  feedbackSection: {
+    marginTop: 12,
+  },
+  feedbackText: {
+    fontSize: 14,
+    marginLeft: 8,
+    marginTop: 4,
+    lineHeight: 20,
+  },
+  bold: {
+    fontWeight: "bold",
   },
 });
