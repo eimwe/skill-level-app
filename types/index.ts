@@ -23,3 +23,13 @@ export interface ICEFRPrompt {
   tasks: string[];
   evaluationCriteria: string;
 }
+
+export type EvaluationResult = {
+  score: number;
+  cefr: string;
+  feedback: {
+    strengths: string[];
+    areas_for_improvement: string[];
+    suggested_sub_level: string;
+  };
+};
