@@ -15,11 +15,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 export const saveUserSession = async (
   levelChosen: string,
-  responses: any[]
+  response: string
 ): Promise<Tables["user_sessions"][] | null> => {
   const { data, error } = (await supabase.from("user_sessions").insert({
     level: levelChosen,
-    responses: JSON.stringify(responses),
+    response: JSON.stringify(response),
     created_at: new Date().toISOString(),
   })) as SupabaseInsertResponse<Tables["user_sessions"]>;
 

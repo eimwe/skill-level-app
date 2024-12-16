@@ -2,7 +2,7 @@ export type Tables = {
   user_sessions: {
     id: number;
     level: string;
-    responses: string;
+    response: string;
     created_at: string;
   };
   evaluation_results: {
