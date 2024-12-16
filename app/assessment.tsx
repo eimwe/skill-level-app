@@ -14,6 +14,7 @@ import {
   saveEvaluationResult,
 } from "@/services/supabase-config";
 import { evaluateResponse } from "@/services/mistral-service";
+import { CEFR_PROMPTS } from "@/config/prompts";
 import type { EvaluationResult } from "@/types";
 
 export default function AssessmentScreen() {
@@ -68,6 +69,11 @@ export default function AssessmentScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.levelText}>English Proficiency Level: {level}</Text>
+      {CEFR_PROMPTS[level].tasks.map((task, index) => (
+        <Text style={styles.promptText} key={index}>
+          {index + 1}. {task}
+        </Text>
+      ))}
       <TextInput
         multiline
         placeholder="Write your response here..."
@@ -143,8 +149,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
+  promptText: {
+    fontSize: 16,
+    marginBottom: 14,
+    textAlign: "left",
+  },
   input: {
-    height: 200,
+    minHeight: 80,
     borderColor: "gray",
     borderWidth: 1,
     marginVertical: 16,
