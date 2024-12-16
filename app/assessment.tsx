@@ -27,7 +27,7 @@ export default function AssessmentScreen() {
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      const currentLevel = level || "A1";
+      const currentLevel = level || "Level unavailable";
 
       const result = await evaluateResponse(currentLevel, userResponse);
       let parsedResult = null;
@@ -53,7 +53,7 @@ export default function AssessmentScreen() {
       const sessionId =
         sessionData && sessionData.length > 0 ? sessionData[0].id : 0;
 
-      await saveEvaluationResult(sessionId, currentLevel, 85); // Example score
+      await saveEvaluationResult(sessionId, currentLevel, parsedResult.score);
       setIsSubmitting(false);
     } catch (error) {
       setIsSubmitting(false);
