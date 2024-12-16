@@ -20,11 +20,13 @@ import type { EvaluationResult } from "@/types";
 export default function AssessmentScreen() {
   const { level } = useLocalSearchParams<{ level: string }>();
   const [userResponse, setUserResponse] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResult | null>(null);
 
   const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
       const currentLevel = level || "A1";
 
       const result = await evaluateResponse(currentLevel, userResponse);
@@ -52,7 +54,9 @@ export default function AssessmentScreen() {
         sessionData && sessionData.length > 0 ? sessionData[0].id : 0;
 
       await saveEvaluationResult(sessionId, currentLevel, 85); // Example score
+      setIsSubmitting(false);
     } catch (error) {
+      setIsSubmitting(false);
       console.error("Submission error:", error);
       setEvaluationResult({
         score: 0,
@@ -81,7 +85,7 @@ export default function AssessmentScreen() {
         onChangeText={setUserResponse}
         style={styles.input}
       />
-      <Button title="Submit" onPress={handleSubmit} />
+      <Button title="Submit" onPress={handleSubmit} disabled={isSubmitting} />
 
       {/* Render evaluation result if available */}
       {evaluationResult && (
