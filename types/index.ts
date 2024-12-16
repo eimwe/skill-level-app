@@ -18,3 +18,8 @@ export type SupabaseInsertResponse<T> = {
   data: T[] | null;
   error: Error | null;
 };
+
+export interface ICEFRPrompt {
+  tasks: string[];
+  evaluationCriteria: string;
+}
