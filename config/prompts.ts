@@ -1,6 +1,6 @@
 import { ICEFRPrompt } from "@/types";
 
-const CEFR_PROMPTS: Record<string, ICEFRPrompt> = {
+export const CEFR_PROMPTS: Record<string, ICEFRPrompt> = {
   A1: {
     tasks: [
       "Write a short introduction about yourself. Tell me your name, where you're from, and what you like to do.",
@@ -69,4 +69,25 @@ const CEFR_PROMPTS: Record<string, ICEFRPrompt> = {
   },
 };
 
-export default CEFR_PROMPTS;
+export const createEvaluationPrompt = (
+  level: string,
+  userResponse: string,
+  CEFR_PROMPTS: { [key: string]: ICEFRPrompt }
+): string => {
+  if (!CEFR_PROMPTS[level]) {
+    throw new Error(`Unsupported CEFR level: ${level}`);
+  }
+
+  return `
+    CEFR Level: ${level}
+    User Response: ${userResponse}
+
+    ${CEFR_PROMPTS[level].evaluationCriteria}
+
+    Provide a detailed evaluation including:
+    1. Overall language proficiency score (0-100)
+    2. Strengths in the response
+    3. Areas for improvement
+    4. Suggested CEFR sub-level (e.g., A1.1, A1.2)
+  `;
+};
