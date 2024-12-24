@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
-import { Tables, SupabaseInsertResponse } from "@/types";
+import { Tables } from "@/types";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
@@ -17,11 +17,17 @@ export const saveUserSession = async (
   levelChosen: string,
   response: string
 ): Promise<Tables["user_sessions"][] | null> => {
-  const { data, error } = (await supabase.from("user_sessions").insert({
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase.from("user_sessions").insert({
+    user_id: user.id,
     level: levelChosen,
     response: JSON.stringify(response),
     created_at: new Date().toISOString(),
-  })) as SupabaseInsertResponse<Tables["user_sessions"]>;
+  });
 
   if (error) console.error("Error saving session:", error);
   return data;
@@ -32,12 +38,18 @@ export const saveEvaluationResult = async (
   finalLevel: string,
   score: number
 ): Promise<Tables["evaluation_results"][] | null> => {
-  const { data, error } = (await supabase.from("evaluation_results").insert({
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase.from("evaluation_results").insert({
+    user_id: user.id,
     session_id: sessionId,
     final_level: finalLevel,
     score: score,
     evaluated_at: new Date().toISOString(),
-  })) as SupabaseInsertResponse<Tables["evaluation_results"]>;
+  });
 
   if (error) console.error("Error saving evaluation:", error);
   return data;
