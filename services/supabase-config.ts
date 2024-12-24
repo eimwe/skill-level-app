@@ -34,7 +34,7 @@ export const saveUserSession = async (
 };
 
 export const saveEvaluationResult = async (
-  sessionId: number,
+  sessionId: number | null,
   finalLevel: string,
   score: number
 ): Promise<Tables["evaluation_results"][] | null> => {

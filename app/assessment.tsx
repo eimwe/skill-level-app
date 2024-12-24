@@ -51,7 +51,7 @@ export default function AssessmentScreen() {
       const sessionData = await saveUserSession(currentLevel, userResponse);
       // Type-safe session ID extraction
       const sessionId =
-        sessionData && sessionData.length > 0 ? sessionData[0].id : 0;
+        sessionData && sessionData.length > 0 ? sessionData[0].id : null;
 
       await saveEvaluationResult(sessionId, currentLevel, parsedResult.score);
       setIsSubmitting(false);
