@@ -16,20 +16,27 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export const saveUserSession = async (
   levelChosen: string,
   response: string
-): Promise<Tables["user_sessions"][] | null> => {
+): Promise<Tables["user_sessions"] | null> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await supabase.from("user_sessions").insert({
-    user_id: user.id,
-    level: levelChosen,
-    response: JSON.stringify(response),
-    created_at: new Date().toISOString(),
-  });
+  const { data, error } = await supabase
+    .from("user_sessions")
+    .insert({
+      user_id: user.id,
+      level: levelChosen,
+      response: JSON.stringify(response),
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
 
-  if (error) console.error("Error saving session:", error);
+  if (error) {
+    console.error("Error saving session:", error);
+    return null;
+  }
   return data;
 };
 
@@ -37,22 +44,32 @@ export const saveEvaluationResult = async (
   sessionId: number | null,
   finalLevel: string,
   score: number,
-  feedback: string
-): Promise<Tables["evaluation_results"][] | null> => {
+  feedback: object | string
+): Promise<Tables["evaluation_results"] | null> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await supabase.from("evaluation_results").insert({
-    user_id: user.id,
-    session_id: sessionId,
-    final_level: finalLevel,
-    score: score,
-    feedback: feedback,
-    evaluated_at: new Date().toISOString(),
-  });
+  const feedbackString =
+    typeof feedback === "string" ? feedback : JSON.stringify(feedback);
 
-  if (error) console.error("Error saving evaluation:", error);
+  const { data, error } = await supabase
+    .from("evaluation_results")
+    .insert({
+      user_id: user.id,
+      session_id: sessionId,
+      final_level: finalLevel,
+      score: score,
+      feedback: feedbackString,
+      evaluated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error saving evaluation:", error);
+    return null;
+  }
   return data;
 };

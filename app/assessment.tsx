@@ -34,7 +34,6 @@ export default function AssessmentScreen() {
 
       if (result) {
         parsedResult = JSON.parse(result);
-        console.log(parsedResult);
         setEvaluationResult(parsedResult);
       } else {
         setEvaluationResult({
@@ -50,9 +49,7 @@ export default function AssessmentScreen() {
 
       // Save session and results to Supabase
       const sessionData = await saveUserSession(currentLevel, userResponse);
-      // Type-safe session ID extraction
-      const sessionId =
-        sessionData && sessionData.length > 0 ? sessionData[0].id : null;
+      const sessionId = sessionData?.id ?? null;
 
       await saveEvaluationResult(
         sessionId,
