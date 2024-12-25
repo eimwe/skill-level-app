@@ -49,3 +49,19 @@ export type ParsedFeedback = {
   areas_for_improvement: string[];
   suggested_sub_level: string;
 };
+
+export interface IValidationRule {
+  test: (value: string) => boolean;
+  errorMessage: string;
+}
+
+export interface IValidationField {
+  value: string; // The value to validate
+  rules: IValidationRule[]; // Array of validation rules
+  fieldName: string; // The name of the field (for error messages)
+}
+
+export interface IValidationResult {
+  isValid: boolean;
+  error: string | null;
+}
