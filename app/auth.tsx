@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "@/services/supabase-config";
+import { Alert } from "react-native";
+import {
+  validateInputs,
+  isNotEmpty,
+  isValidEmail,
+} from "@/services/field-validator";
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -12,6 +18,17 @@ export default function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const handleAuth = async () => {
+    const fields = [
+      { value: email, rules: [isNotEmpty, isValidEmail], fieldName: "Email" },
+      { value: password, rules: [isNotEmpty], fieldName: "Password" },
+    ];
+
+    const { isValid, error } = validateInputs(fields);
+
+    if (!isValid) {
+      Alert.alert("Validation Error", error!);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
