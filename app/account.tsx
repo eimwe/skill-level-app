@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  FlatList,
+} from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { supabase } from "@/services/supabase-config";
 import type { TestResult } from "@/types";
@@ -8,12 +15,30 @@ export default function AccountScreen() {
   const router = useRouter();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [results, setResults] = useState<TestResult[]>([]);
+  const [filteredResults, setFilteredResults] = useState<TestResult[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchUserData();
     fetchTestResults();
   }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredResults(results);
+    } else {
+      const query = searchQuery.toLowerCase();
+      setFilteredResults(
+        results.filter(
+          (result) =>
+            result.final_level.toLowerCase().includes(query) ||
+            result.score.toString().includes(query) ||
+            new Date(result.evaluated_at).toLocaleDateString().includes(query)
+        )
+      );
+    }
+  }, [searchQuery, results]);
 
   const fetchUserData = async () => {
     try {
@@ -39,9 +64,11 @@ export default function AccountScreen() {
 
       if (error) throw error;
       setResults(data || []);
+      setFilteredResults(data || []);
     } catch (error) {
       console.error("Error fetching test results:", error);
       setResults([]);
+      setFilteredResults([]);
     } finally {
       setLoading(false);
     }
@@ -85,11 +112,18 @@ export default function AccountScreen() {
 
       <Text style={styles.sectionTitle}>Test Results</Text>
 
-      {results.length === 0 ? (
-        <Text style={styles.noResults}>No test results yet</Text>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search by level, score, or date"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+
+      {filteredResults.length === 0 ? (
+        <Text style={styles.noResults}>No test results found</Text>
       ) : (
         <FlatList
-          data={results}
+          data={filteredResults}
           renderItem={renderTestResult}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.resultsList}
@@ -161,5 +195,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#666",
     marginTop: 32,
+  },
+  searchInput: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "white",
   },
 });
