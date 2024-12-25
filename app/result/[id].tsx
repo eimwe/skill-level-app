@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "@/services/supabase-config";
+import { CEFR_PROMPTS } from "@/config/prompts";
 import type { DetailedResult, ParsedFeedback } from "@/types";
 
 export default function TestResultScreen() {
@@ -11,6 +12,7 @@ export default function TestResultScreen() {
   const [parsedFeedback, setParsedFeedback] = useState<ParsedFeedback | null>(
     null
   );
+  const [userResponse, setUserResponse] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +36,11 @@ export default function TestResultScreen() {
       .select(
         `
         *,
-        user_session_id:user_sessions (*)
+        user_sessions (
+          id,
+          level,
+          response
+        )
       `
       )
       .eq("id", id)
@@ -42,8 +48,17 @@ export default function TestResultScreen() {
 
     if (error) {
       console.error("Error fetching result:", error);
-    } else {
+    } else if (data) {
       setResult(data as DetailedResult);
+      if (data.user_sessions) {
+        try {
+          const parsedResponse = JSON.parse(data.user_sessions.response);
+          setUserResponse(parsedResponse);
+        } catch (error) {
+          console.error("Error parsing user response:", error);
+          setUserResponse(data.user_sessions.response);
+        }
+      }
     }
     setLoading(false);
   };
@@ -76,7 +91,29 @@ export default function TestResultScreen() {
         </Text>
       </View>
 
+      {/* Task Section */}
+      {result.final_level && (
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Task Instructions:</Text>
+          {CEFR_PROMPTS[result.final_level].tasks.map((task, index) => (
+            <Text key={index} style={styles.taskText}>
+              {index + 1}. {task}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {/* User Response Section */}
+      {userResponse && (
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Your Response:</Text>
+          <Text style={styles.responseText}>{userResponse}</Text>
+        </View>
+      )}
+
+      {/* Evaluation Result Card */}
       <View style={styles.resultCard}>
+        <Text style={styles.sectionTitle}>Evaluation Feedback:</Text>
         <View style={styles.row}>
           <Text style={styles.label}>Level:</Text>
           <Text style={styles.value}>{result.final_level}</Text>
@@ -235,5 +272,30 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 8,
     paddingLeft: 8,
+  },
+  sectionCard: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: "white",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 12,
+  },
+  taskText: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  responseText: {
+    fontSize: 16,
+    color: "#666",
+    lineHeight: 24,
   },
 });
