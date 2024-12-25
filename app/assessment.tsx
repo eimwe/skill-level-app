@@ -34,6 +34,7 @@ export default function AssessmentScreen() {
 
       if (result) {
         parsedResult = JSON.parse(result);
+        console.log(parsedResult);
         setEvaluationResult(parsedResult);
       } else {
         setEvaluationResult({
@@ -53,7 +54,12 @@ export default function AssessmentScreen() {
       const sessionId =
         sessionData && sessionData.length > 0 ? sessionData[0].id : null;
 
-      await saveEvaluationResult(sessionId, currentLevel, parsedResult.score);
+      await saveEvaluationResult(
+        sessionId,
+        currentLevel,
+        parsedResult.score,
+        parsedResult.feedback
+      );
       setIsSubmitting(false);
     } catch (error) {
       setIsSubmitting(false);
