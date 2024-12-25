@@ -7,7 +7,9 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
+import { Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
+import { validateInputs, isNotEmpty } from "@/services/field-validator";
 
 import {
   saveUserSession,
@@ -25,6 +27,17 @@ export default function AssessmentScreen() {
     useState<EvaluationResult | null>(null);
 
   const handleSubmit = async () => {
+    const fields = [
+      { value: userResponse, rules: [isNotEmpty], fieldName: "Response" },
+    ];
+
+    const { isValid, error } = validateInputs(fields);
+
+    if (!isValid) {
+      Alert.alert("Validation Error", error!);
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const currentLevel = level || "Level unavailable";
