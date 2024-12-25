@@ -10,6 +10,11 @@ export type Tables = {
     session_id: number;
     final_level: string;
     score: number;
+    feedback: {
+      strengths: string[];
+      areas_for_improvement: string[];
+      suggested_sub_level: string;
+    };
     evaluated_at: string;
   };
 };
@@ -32,4 +37,15 @@ export type EvaluationResult = {
     areas_for_improvement: string[];
     suggested_sub_level: string;
   };
+};
+
+export type DetailedResult = Tables["evaluation_results"] & {
+  user_session: Tables["user_sessions"];
+  feedback: string;
+};
+
+export type ParsedFeedback = {
+  strengths: string[];
+  areas_for_improvement: string[];
+  suggested_sub_level: string;
 };
