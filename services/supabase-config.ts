@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
-import { Tables, SupabaseInsertResponse } from "@/types";
+import { Tables } from "@/types";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
@@ -16,29 +16,60 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export const saveUserSession = async (
   levelChosen: string,
   response: string
-): Promise<Tables["user_sessions"][] | null> => {
-  const { data, error } = (await supabase.from("user_sessions").insert({
-    level: levelChosen,
-    response: JSON.stringify(response),
-    created_at: new Date().toISOString(),
-  })) as SupabaseInsertResponse<Tables["user_sessions"]>;
+): Promise<Tables["user_sessions"] | null> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  if (error) console.error("Error saving session:", error);
+  const { data, error } = await supabase
+    .from("user_sessions")
+    .insert({
+      user_id: user.id,
+      level: levelChosen,
+      response: JSON.stringify(response),
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error saving session:", error);
+    return null;
+  }
   return data;
 };
 
 export const saveEvaluationResult = async (
-  sessionId: number,
+  sessionId: number | null,
   finalLevel: string,
-  score: number
-): Promise<Tables["evaluation_results"][] | null> => {
-  const { data, error } = (await supabase.from("evaluation_results").insert({
-    session_id: sessionId,
-    final_level: finalLevel,
-    score: score,
-    evaluated_at: new Date().toISOString(),
-  })) as SupabaseInsertResponse<Tables["evaluation_results"]>;
+  score: number,
+  feedback: object | string
+): Promise<Tables["evaluation_results"] | null> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  if (error) console.error("Error saving evaluation:", error);
+  const feedbackString =
+    typeof feedback === "string" ? feedback : JSON.stringify(feedback);
+
+  const { data, error } = await supabase
+    .from("evaluation_results")
+    .insert({
+      user_id: user.id,
+      session_id: sessionId,
+      final_level: finalLevel,
+      score: score,
+      feedback: feedbackString,
+      evaluated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error saving evaluation:", error);
+    return null;
+  }
   return data;
 };
