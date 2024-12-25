@@ -6,9 +6,10 @@ import {
   Button,
   StyleSheet,
   ScrollView,
+  Pressable,
 } from "react-native";
 import { Alert } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { validateInputs, isNotEmpty } from "@/services/field-validator";
 
 import {
@@ -25,6 +26,7 @@ export default function AssessmentScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResult | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async () => {
     const fields = [
@@ -101,7 +103,12 @@ export default function AssessmentScreen() {
         onChangeText={setUserResponse}
         style={styles.input}
       />
-      <Button title="Submit" onPress={handleSubmit} disabled={isSubmitting} />
+      <Button
+        title="Submit response"
+        onPress={handleSubmit}
+        disabled={isSubmitting}
+        color="#007bff"
+      />
 
       {/* Render evaluation result if available */}
       {evaluationResult && (
@@ -153,6 +160,21 @@ export default function AssessmentScreen() {
           </Text>
         </View>
       )}
+
+      <View style={styles.buttonContainer}>
+        <Pressable style={styles.button} onPress={() => router.back()}>
+          <Text style={styles.buttonText}>Back to Level Selection</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.push("/account")}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Go to Account
+          </Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -210,5 +232,29 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: "bold",
+  },
+  buttonContainer: {
+    marginTop: 24,
+    padding: 16,
+    gap: 12,
+  },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  secondaryButton: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#007bff",
+  },
+  secondaryButtonText: {
+    color: "#007bff",
   },
 });
