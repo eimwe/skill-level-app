@@ -65,3 +65,7 @@ export interface IValidationResult {
   isValid: boolean;
   error: string | null;
 }
+
+export type TestResult = Tables["evaluation_results"] & {
+  user_session: Tables["user_sessions"];
+};

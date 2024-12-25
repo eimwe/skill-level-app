@@ -2,11 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { supabase } from "@/services/supabase-config";
-import type { Tables } from "@/types";
-
-type TestResult = Tables["evaluation_results"] & {
-  user_session: Tables["user_sessions"];
-};
+import type { TestResult } from "@/types";
 
 export default function AccountScreen() {
   const router = useRouter();
