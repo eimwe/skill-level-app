@@ -1,6 +1,6 @@
 import { Mistral } from "@mistralai/mistralai";
 import { CEFR_PROMPTS, createEvaluationPrompt } from "@/config/prompts";
-import { SYSTEM_ROLE } from "@/config/role-specifier";
+import { SYSTEM_ROLE, ASSISTANT_ROLE } from "@/config/role-specifier";
 
 const mistralApiKey = process.env.EXPO_PUBLIC_MISTRAL_API_KEY!;
 const client = new Mistral({ apiKey: mistralApiKey });
@@ -26,6 +26,10 @@ export const evaluateResponse = async (
         {
           role: "system",
           content: SYSTEM_ROLE,
+        },
+        {
+          role: "assistant",
+          content: ASSISTANT_ROLE,
         },
         { role: "user", content: evaluationPrompt },
       ],
