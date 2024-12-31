@@ -80,6 +80,7 @@ export const createEvaluationPrompt = (
 
   return `
     CEFR Level: ${level}
+    Evaluation Task: ${CEFR_PROMPTS[level].tasks}
     User Response: ${userResponse}
 
     ${CEFR_PROMPTS[level].evaluationCriteria}
